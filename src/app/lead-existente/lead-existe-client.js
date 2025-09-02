@@ -1,31 +1,54 @@
-"use client";
+"use client"; // necessário para usar hooks
+
+import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function CadastroSucessoPage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+export default function LeadExistenteClient() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const [cliente, setCliente] = useState(null);
 
-  const cliente = {
-    status: searchParams.get("status"),
-    empresa: searchParams.get("empresa"),
-    cnpj: searchParams.get("cnpj"),
-    email: searchParams.get("email"),
-    telefone: searchParams.get("telefone"),
-    vendedor: searchParams.get("vendedor"),
-    link: searchParams.get("link") // link para o Notion
-  };
+    useEffect(() => {
+        const cnpj = searchParams.get("cnpj");
+        const empresa = searchParams.get("empresa");
+        const vendedor = searchParams.get("vendedor");
+        const status = searchParams.get("status");
 
-  const statusClasses = {
-    "Prospectando": "prospectando",
-    "Desistiu de Prospectar": "desistiu"
-  };
-  const classe = statusClasses[cliente.status] || "nao-informado";
+        if (!cnpj) {
+            setCliente({ erro: "Nenhuma informação de cliente foi encontrada." });
+            return;
+        }
 
-  const hasData = cliente.empresa || cliente.cnpj;
+        setCliente({
+            cnpj,
+            empresa,
+            vendedor,
+            status
+        });
+    }, [searchParams]);
 
-  if (!hasData) {
+    if (!cliente) {
+        return <p>Carregando...</p>;
+    }
+
+    if (cliente.erro) {
+        return (
+            <div style={{ textAlign: "center", marginTop: "50px" }}>
+                <h2>Erro: {cliente.erro}</h2>
+                <p>Por favor, volte e tente novamente.</p>
+            </div>
+        );
+    }
+
+    const statusClasses = {
+        "Prospectando": "prospectando",
+        "Desistiu de Prospectar": "desistiu"
+    };
+    const classe = statusClasses[cliente.status] || "nao-informado";
+
     return (
-        <> <header>
+        <>
+            <header>
                 <div className="header-inner" role="banner">
                     <div className="brand" aria-label="ARTLIMP BRASIL">
                         <div className="brand-logo" aria-hidden="true">
@@ -44,78 +67,35 @@ export default function CadastroSucessoPage() {
                         alt=""
                     />
                 </div>
-            </header>   
-        <div style={{ textAlign: "center", marginTop: "50px" }}>
-        <h2>Erro: Nenhuma informação de cliente foi fornecida.</h2>
-        <p>Por favor, volte e tente novamente.</p>
-        <button onClick={() => router.push("/")}>Voltar para o formulário</button>
-      </div>
-        </>
-      
-    );
-  }
+            </header>
+            <div className="container">
 
-  return (
-    <>
-     <header>
-                <div className="header-inner" role="banner">
-                    <div className="brand" aria-label="ARTLIMP BRASIL">
-                        <div className="brand-logo" aria-hidden="true">
-                            A
-                        </div>
-                        <div>
-                            <div style={{ fontSize: 16, lineHeight: 1 }}>ARTLIMP BRASIL</div>
-                            <span>Cadastro de Leads</span>
-                        </div>
-                    </div>
-                    <img
-                        src="https://www.artlimpbrasil.com.br/pub/media/logo/stores/1/logo-artlimp.png"
-                        width="170"
-                        height="84"
-                        loading="lazy"
-                        alt=""
-                    />
-                </div>
-            </header>   
+                <h2>Este CNPJ já está cadastrado!</h2>
+                <table>
+                    <tbody>
+                        <tr>
+                            <th>Status:</th>
+                            <td><span className={`tag ${classe}`}>{cliente.status || "Não informado"}</span></td>
+                        </tr>
+                        <tr>
+                            <th>Empresa:</th>
+                            <td>{cliente.empresa || "Não informado"}</td>
+                        </tr>
+                        <tr>
+                            <th>Vendedor responsável:</th>
+                            <td>{cliente.vendedor || "Não informado"}</td>
+                        </tr>
+                        <tr>
+                            <th>CNPJ:</th>
+                            <td>{cliente.cnpj || "Não informado"}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button onClick={() => router.push("/")}>
+                    Voltar para o formulário
+                </button>
 
-    <div className="container">
-      <h1>✅ Cadastro feito com sucesso!</h1>
-      <table>
-        <tbody>
-          <tr>
-            <th>Status:</th>
-            <td><span className={`tag ${classe}`}>{cliente.status || "Não informado"}</span></td>
-          </tr>
-          <tr>
-            <th>Empresa:</th>
-            <td>{cliente.empresa || "Não informado"}</td>
-          </tr>
-          <tr>
-            <th>CNPJ:</th>
-            <td>{cliente.cnpj || "Não informado"}</td>
-          </tr>
-          <tr>
-            <th>Email:</th>
-            <td>{cliente.email || "Não informado"}</td>
-          </tr>
-          <tr>
-            <th>Telefone:</th>
-            <td>{cliente.telefone || "Não informado"}</td>
-          </tr>
-          <tr>
-            <th>Vendedor responsável:</th>
-            <td>{cliente.vendedor || "Não informado"}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <a href={cliente.link || "/"} target="_blank" rel="noopener noreferrer">
-        <button>Abrir o Leads no Notion</button>
-      </a>
-
-      <button onClick={() => router.push("/")}>Cadastrar outro Lead</button>
-
-         <style jsx global>{`
+                <style jsx global>{`
                 :root {
   --blue-900: #0b3b70;
   --blue-700: #145ea8;
@@ -149,6 +129,7 @@ html, body {
         .header-inner { max-width:1080px; margin:0 auto; padding:18px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
         .brand { display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; }
         .brand-logo { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, var(--white), #cde8ff); display:grid; place-items:center; color: var(--blue-700); font-weight:900; box-shadow: inset 0 0 0 3px rgba(255,255,255,0.5), 0 4px 10px rgba(0,0,0,0.15); }
+
         .container {
           text-align: left;
           max-width: 600px;
@@ -156,21 +137,11 @@ html, body {
           padding: 24px;
           border: 1px solid #ddd;
           border-radius: 8px;
-          background-color: #f9f9f9;
+          background-color: #fff;
           font-family: Arial, sans-serif;
         }
-        .container {
-          text-align: left;
-          max-width: 600px;
-          margin: 40px auto;
-          padding: 24px;
-          border: 1px solid #ddd;
-          border-radius: 8px;
-          background-color: #f9f9f9;
-          font-family: Arial, sans-serif;
-        }
-        h1 {
-          color: #28a745;
+        h2 {
+          color: #d9534f;
         }
         table {
           width: 100%;
@@ -224,7 +195,7 @@ html, body {
           background-color: #555;
         }
       `}</style>
-    </div>
-    </>
-  );
+            </div>
+        </>
+    );
 }

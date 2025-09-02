@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import CnpjExisteClient from "./cnpj-client";
+import CnpjExisteClient from "./cnpj-existe-client";
 
 export default function CnpjExistePage() {
   return (

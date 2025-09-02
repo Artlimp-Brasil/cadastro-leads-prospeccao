@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import LeadExistenteClient from "./lead-existe";
+import LeadExistenteClient from "./lead-existe-client";
 
 export default function LeadExistentePage() {
   return (
